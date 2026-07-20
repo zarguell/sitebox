@@ -11,7 +11,7 @@ Self-hosted static site host — upload pages via REST API or MCP, serve them im
 ## Quick start
 
 ```bash
-docker run -e API_KEY=my-secret-key -p 8000:8000 ghcr.io/zarguell/sitebox
+docker run -e API_KEY=my-secret-key -v /path/to/pages:/app/data -p 8000:8000 ghcr.io/zarguell/sitebox
 ```
 
 Upload a page:
