@@ -1,0 +1,15 @@
+[project]
+name = "sitebox"
+version = "1.0.0"
+description = "Self-hosted static site host with API and MCP server"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115,<1",
+    "mcp==2.0.0b2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.21"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
