@@ -22,7 +22,7 @@ async def upload_file(
 ):
     _check_key(request)
     dest = dest.strip("/")
-    if not dest or not all(c.isalnum() or c in "-_/" for c in dest):
+    if dest and not all(c.isalnum() or c in "-_/" for c in dest):
         raise HTTPException(status_code=400, detail="Invalid destination")
 
     content = await file.read()
@@ -30,14 +30,14 @@ async def upload_file(
     storage.save_page(dest, content, filename=file.filename or "index.html", is_zip=is_zip)
 
     if auth_required:
-        AUTH_PREFIXES.add("/" + dest)
+        AUTH_PREFIXES.add("/" + dest if dest else "/")
     else:
-        AUTH_PREFIXES.discard("/" + dest)
+        AUTH_PREFIXES.discard("/" + dest if dest else "/")
 
     if ttl_seconds and ttl_seconds > 0:
         storage._self_destruct(dest, ttl_seconds)
 
-    return {"dest": dest, "path": f"/{dest}", "ttl": ttl_seconds, "auth_required": auth_required}
+    return {"dest": dest, "path": "/" + dest if dest else "/", "ttl": ttl_seconds, "auth_required": auth_required}
 
 
 @router.get("/pages")

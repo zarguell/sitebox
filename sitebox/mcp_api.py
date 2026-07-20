@@ -28,17 +28,17 @@ async def upload_page(
 ) -> str:
     """Upload content to a page destination."""
     dest = dest.strip("/")
-    if not dest or not all(c.isalnum() or c in "-_/" for c in dest):
+    if dest and not all(c.isalnum() or c in "-_/" for c in dest):
         return "Error: Invalid destination"
     data = base64.b64decode(file_content)
     storage.save_page(dest, data, filename=filename, is_zip=is_zip)
     if auth_required:
-        AUTH_PREFIXES.add("/" + dest)
+        AUTH_PREFIXES.add("/" + dest if dest else "/")
     else:
-        AUTH_PREFIXES.discard("/" + dest)
+        AUTH_PREFIXES.discard("/" + dest if dest else "/")
     if ttl_seconds and ttl_seconds > 0:
         storage._self_destruct(dest, ttl_seconds)
-    return f"Uploaded /{dest}"
+    return f"Uploaded /{dest}" if dest else "Uploaded /"
 
 
 @mcp.tool()

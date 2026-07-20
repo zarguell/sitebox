@@ -9,7 +9,8 @@ import sitebox.config as cfg
 
 def save_page(dest, content_bytes, filename="index.html", is_zip=False) -> Path:
     target = cfg.DATA_DIR / dest
-    if target.exists():
+    # Don't rmtree the data root — only subdirectories
+    if dest and target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
 
