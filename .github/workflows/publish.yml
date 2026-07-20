@@ -2,6 +2,7 @@ name: Publish to GHCR
 on:
   push:
     tags:
+      - '*'
 
 jobs:
   publish:
