@@ -2,7 +2,8 @@
 
 Assembles FastAPI app from auth, rest_api, and mcp_api modules.
 Adds middleware for MCP auth (X-API-Key header) and browser auth (session cookie).
-Mounts MCP ASGI app at /mcp and StaticFiles at / to serve uploaded pages.
+Mounts StaticFiles at / to serve uploaded pages. MCP routes are copied directly
+into FastAPI to avoid Starlette Mount path-matching issues.
 """
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -13,13 +14,13 @@ from fastapi.staticfiles import StaticFiles
 
 from sitebox.auth import router as login_router, check_browser_auth
 from sitebox.rest_api import router as api_router
-from sitebox.mcp_api import mcp, mcp_app
+from sitebox.mcp_api import mcp_app, _mcp_lifespan_ctx
 from sitebox.config import get_api_key, AUTH_PREFIXES, DATA_DIR
 
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    async with mcp.session_manager.run():
+    async with _mcp_lifespan_ctx(_app):
         yield
 
 
@@ -59,8 +60,11 @@ async def auth_middleware(request: Request, call_next):
     return await call_next(request)
 
 
-# Order matters: /mcp mount before / mount so /mcp doesn't fall through to StaticFiles
-app.mount("/mcp", mcp_app)
+# ponytail: app.mount("/mcp", mcp_app) fails — Starlette Mount won't match
+# exact /mcp (requires a sub-path). Copy MCP routes directly so /mcp is
+# matched before the StaticFiles catch-all at /.
+for mcp_route in mcp_app.routes:
+    app.routes.append(mcp_route)
 
 DATA_DIR.mkdir(exist_ok=True)
 # ponytail: html=True so /app1 resolves to /app1/index.html if it exists
