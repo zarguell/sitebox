@@ -30,7 +30,10 @@ async def upload_page(
     dest = dest.strip("/")
     if dest and not all(c.isalnum() or c in "-_/" for c in dest):
         return "Error: Invalid destination"
-    data = base64.b64decode(file_content)
+    try:
+        data = base64.b64decode(file_content, validate=True)
+    except Exception:
+        data = file_content.encode("utf-8")
     storage.save_page(dest, data, filename=filename, is_zip=is_zip)
     if auth_required:
         AUTH_PREFIXES.add("/" + dest if dest else "/")
